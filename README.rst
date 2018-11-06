@@ -9,8 +9,7 @@ There is another similar package in my github repository called CREED, which use
 
 In a "ctapipe pipeline" one can introduce this library in this way (more or less...expect changes):
 
-.. code-block:: python    
-    pygments_style = 'sphinx'
+.. code-block:: bash    
     import CREED_VTK
     ...
     render = CREED_VTK(event)
