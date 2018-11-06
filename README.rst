@@ -9,11 +9,11 @@ There is another similar package in my github repository called CREED, which use
 
 In a "ctapipe pipeline" one can introduce this library in this way (more or less...expect changes):
 
-.. code-block:: bash    
+.. code:: python
     import CREED_VTK
     ...
     render = CREED_VTK(event)
-    
+
     render.tel_ids = [4,5, ....]
     render.event_type = "None",
                         "dl0",
@@ -21,13 +21,13 @@ In a "ctapipe pipeline" one can introduce this library in this way (more or less
                         "tailcut"
     render.ref_frames.tilted = TiltedFrame(...)
     render.ref_frames.ground = GroundFrame(...)
-    
+
     render.ref_frame.tilted.arrows()
     render.ref_frame.ground.arrows()
 
     render.ref_frame.ground.grid()
     render.ref_frame.ground.grid()
-    
+
     render.ref_frame.ground.add_point( x = 3 * u.m, 
                                        y = 5 * u.m,
                                        label = "mc"
@@ -35,4 +35,3 @@ In a "ctapipe pipeline" one can introduce this library in this way (more or less
     render.view()    
 
 This will pop-out an OpenGL window with the camera, telescopes, etc... 
-
