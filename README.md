@@ -29,8 +29,9 @@ In a "ctapipe pipeline" one can introduce this library in this way (more or less
                                        label = "mc"
                                       )
 Where:
-
+- `event` is an event from a simtel file
 - `telescopes_ids` is optional: if not provided is taken from event.r0.tels_with_data
 - `clean_level` can be: "r0", "dl1", "clean" (need to pass a dictionary with a `cleaned_image` as value and `telelscope_id` as key) or "None"
+- the camera has just elevation for now (in degrees "above horizon")
 
 This will pop-out an OpenGL window with the camera, telescopes, etc... 
