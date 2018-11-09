@@ -1,8 +1,9 @@
 import vtk
 import numpy as np
 from vtk.util.colors import tomato
+from ..utils.cam_utils import get_cam_height
 
-cam_height = 28
+cam_height = get_cam_height("LSTCam")
 
 
 def LST_tel_structure():
@@ -40,6 +41,7 @@ def LST_tel_structure():
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     actor.GetProperty().SetColor(tomato)
+    #actor.SetPosition(cam_height, 0, 0)
 
     return actor
 
@@ -88,5 +90,6 @@ def LST_create_mirror_plane():
     actor.SetMapper(mapper)
     #actor.GetProperty().EdgeVisibilityOn()
     actor.GetProperty().SetColor(tomato)
+    # actor.SetPosition(cam_height, 0, 0)
 
     return actor
