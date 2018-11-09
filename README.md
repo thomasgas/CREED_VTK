@@ -9,29 +9,28 @@ There is another similar package in my github repository called CREED, which use
 
 In a "ctapipe pipeline" one can introduce this library in this way (more or less...expect changes):
 
-    import CREED_VTK
-    
-    render = CREED_VTK(event)
+    from CREED_VTK import CREED_VTK
 
-    render.tel_ids = [4,5, ....]
-    render.event_type = "None",
-                        "dl0",
-                        "dl1",
-                        "tailcut"
-    render.ref_frames.tilted = TiltedFrame(...)
-    render.ref_frames.ground = GroundFrame(...)
+    render = CREED_VTK(event, telescopes_ids=[4,5,...])
 
-    render.ref_frame.tilted.arrows()
-    render.ref_frame.ground.arrows()
+    render.event_type(clean_level = "dl1", clean_dict=cleaned_dict)
+    render.camera(elev=20)
+    render.show(width= 1000, height=800)
 
-    render.ref_frame.ground.grid()
-    render.ref_frame.ground.grid()
-
-    render.ref_frame.ground.add_point( x = 3 * u.m, 
+    # TO BE IMPLEMENTED
+    # render.ref_frames.tilted = TiltedFrame(...)
+    # render.ref_frames.ground = GroundFrame(...)
+    # render.ref_frame.tilted.arrows()
+    # render.ref_frame.ground.arrows()
+    # render.ref_frame.ground.grid()
+    # render.ref_frame.ground.grid()
+    # render.ref_frame.ground.add_point( x = 3 * u.m, 
                                        y = 5 * u.m,
                                        label = "mc"
                                       )
-    render.view()    
+Where:
 
+- `telescopes_ids` is optional: if not provided is taken from event.r0.tels_with_data
+- `clean_level` can be: "r0", "dl1", "clean" (need to pass a dictionary with a `cleaned_image` as value and `telelscope_id` as key) or "None"
 
 This will pop-out an OpenGL window with the camera, telescopes, etc... 
