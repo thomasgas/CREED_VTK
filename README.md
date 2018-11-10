@@ -1,5 +1,5 @@
 CREED_VTK
----------
+========
 This library relies on top of [ctapipe](https://github.com/cta-observatory/ctapipe) and it is intended to create 3D renderings 
 in [VTK](https://www.vtk.org) for [CTA](www.cta-observatory.org) (the Cherenkov Telescope Array).
 
@@ -18,12 +18,15 @@ In a "ctapipe pipeline" one can introduce this library in this way (more or less
     render.show(width= 1000, height=800)
 
     # TO BE IMPLEMENTED
-    # render.ref_frames.tilted = TiltedFrame(...)
-    # render.ref_frames.ground = GroundFrame(...)
+    # render.ref_frame.tilted = TiltedFrame(...)
+    # render.ref_frame.ground = GroundFrame(...)
+
     # render.ref_frame.tilted.arrows()
     # render.ref_frame.ground.arrows()
+    
     # render.ref_frame.ground.grid()
     # render.ref_frame.ground.grid()
+    
     # render.ref_frame.ground.add_point( x = 3 * u.m, 
                                        y = 5 * u.m,
                                        label = "mc"
@@ -35,3 +38,15 @@ Where:
 - the camera has just elevation for now (in degrees "above horizon")
 
 This will pop-out an OpenGL window with the camera, telescopes, etc... 
+
+Installation
+------------
+The installation is very easy and **for the moment** I recommend to install this library in the same ctapipe environment. After the activation of the environment, just do:
+
+    git clone https://github.com/thomasgas/CREED_VTK.git
+    cd CREED_VTK
+    python setup.py install
+
+and from now on you should be able to use the library without problems.
+
+If you have any requests just open an issue or send an e-mail to thomas.gasparetto@ts.infn.it or thomas.gasparetto@lapp.in2p3.fr
