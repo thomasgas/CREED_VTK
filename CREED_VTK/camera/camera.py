@@ -7,17 +7,24 @@ from ..utils.cam_utils import get_cam_height
 
 from ..utils.arrows import arrow_2d
 
-SCALING_CAM = 1.2
+scaling_cam_dict = {"CHEC": 3,
+                    "ASTRICam": 1,
+                    "LSTCam": 1.2,
+                    "FlashCam": 1.2,
+                    "DigiCam": 1,
+                    "NectarCam": 1.2,
+                    "SCTCam": 1}
 
 
 def camera_structure(event, tel_id, clean_level, cleaned_dict):
 
     telescope = event.inst.subarray.tel[tel_id]
     camera_type = telescope.camera
+    scaling_cam = scaling_cam_dict[camera_type.cam_id]
 
     # coords_pix = np.loadtxt("LSTCam_coords.txt")
-    # x_px = coords_pix[:, 0]*SCALING_CAM
-    # y_px = coords_pix[:, 1]*SCALING_CAM
+    # x_px = coords_pix[:, 0]*scaling_cam
+    # y_px = coords_pix[:, 1]*scaling_cam
 
     x_px = camera_type.pix_x.value
     y_px = camera_type.pix_y.value
@@ -46,7 +53,7 @@ def camera_structure(event, tel_id, clean_level, cleaned_dict):
     colors.SetNumberOfComponents(3)
 
     for i in range(len(x_px)):
-        points.InsertNextPoint(x_px[i], y_px[i], 0)
+        points.InsertNextPoint(x_px[i]*scaling_cam, y_px[i]*scaling_cam, 0)
         rgb = [0.0, 0.0, 0.0]
         lut.GetColor(float(i) / (tableSize - 1), rgb)
         ucrgb = list(map(int, [x * 255 for x in rgb]))
@@ -62,21 +69,41 @@ def camera_structure(event, tel_id, clean_level, cleaned_dict):
 
     if camera_type.cam_id == "LSTCam":
         pixel_source.SetResolution(6)
-        pixel_source.SetRadius(0.026 * ((SCALING_CAM + 1) / 2))
+        pixel_source.SetRadius(0.029 * scaling_cam)
         pixel_source.SetHeight(0.8)
         pixel_source.Update()
 
         transform = vtk.vtkTransform()
         transform.RotateX(90)
         transform.RotateY(100.8+30)  # the "magic" rotation if the pixels + rotation due to default vtk behaviour
+
     elif camera_type.cam_id == "FlashCam":
         pixel_source.SetResolution(6)
-        pixel_source.SetRadius(0.026 * ((SCALING_CAM + 1) / 2))
+        pixel_source.SetRadius(0.029 * scaling_cam)
+        pixel_source.SetHeight(0.8)
+        pixel_source.Update()
+        transform = vtk.vtkTransform()
+        transform.RotateX(90)
+
+    elif camera_type.cam_id == "NectarCam":
+        pixel_source.SetResolution(6)
+        pixel_source.SetRadius(0.029 * scaling_cam)
+        pixel_source.SetHeight(0.8)
+        pixel_source.Update()
+        transform = vtk.vtkTransform()
+        transform.RotateX(90)
+        transform.RotateY(100.8+30)  # the "magic" rotation if the pixels + rotation due to default vtk behaviour
+
+    elif camera_type.cam_id in ['CHEC', 'ASTRICam', 'DigiCam']:
+        pixel_source.SetResolution(4)
+        pixel_source.SetRadius(0.0045 * scaling_cam)
         pixel_source.SetHeight(0.8)
         pixel_source.Update()
 
         transform = vtk.vtkTransform()
         transform.RotateX(90)
+        transform.RotateY(45)
+
 
     transformFilter = vtk.vtkTransformPolyDataFilter()
     transformFilter.SetTransform(transform)
@@ -113,16 +140,22 @@ def camera_structure(event, tel_id, clean_level, cleaned_dict):
 
 
 def camera_frame(cam_type):
+    scaling_cam = scaling_cam_dict[cam_type]
     if cam_type == "LSTCam":
         camera_frame_structure = vtk.vtkCubeSource()
-        camera_frame_structure.SetXLength(3)
-        camera_frame_structure.SetYLength(3)
+        camera_frame_structure.SetXLength(2.6 * scaling_cam)
+        camera_frame_structure.SetYLength(2.6 * scaling_cam)
         camera_frame_structure.SetZLength(0.75)
-    elif cam_type == "FlashCam" or "NectarCam":
+    elif cam_type in ["FlashCam", "NectarCam"]:
         camera_frame_structure = vtk.vtkCubeSource()
-        camera_frame_structure.SetXLength(2.5)
-        camera_frame_structure.SetYLength(2.5)
+        camera_frame_structure.SetXLength(2.6 * scaling_cam)
+        camera_frame_structure.SetYLength(2.6 * scaling_cam)
         camera_frame_structure.SetZLength(0.75)
+    elif cam_type in ['CHEC', 'ASTRICam', 'DigiCam']:
+        camera_frame_structure = vtk.vtkCubeSource()
+        camera_frame_structure.SetXLength(1.0 * (scaling_cam + 1) / 2)
+        camera_frame_structure.SetYLength(1.0 * (scaling_cam + 1) / 2)
+        camera_frame_structure.SetZLength(0.78)
     else:
         print("camera frame non implemented")
 
