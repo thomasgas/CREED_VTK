@@ -26,7 +26,6 @@ def arrow_2d(event, tel_id, pointing):
     transform_arrow.Translate(tel_x_pos, tel_y_pos, tel_z_pos)
     transform_arrow.RotateY(-pointing[tel_id]['alt'])
     transform_arrow.Translate(get_cam_height(camera_type), 0.0, 0.0)
-    print(get_cam_height(camera_type))
     transform_arrow.RotateY(90)
 
     axes = vtk.vtkAxesActor()
