@@ -9,6 +9,7 @@ from .camera.camera import camera_frame, camera_structure
 from .utils.arrows import arrow_2d
 from .telescope.LST import LST_create_mirror_plane, LST_tel_structure
 from .telescope.MST import MST_create_mirror_plane, MST_tel_structure
+from .telescope.SST import SST_tel_structure, SST_primary_mirror_plane
 from .utils.cam_utils import get_cam_height
 
 tail_cut = {"LSTCam": (10, 20),
@@ -69,11 +70,16 @@ class CREED_VTK:
                 actorCollection.AddItem(mirror_plate_actor)
                 actorCollection.AddItem(CSS_LST_actor)
             elif telescope.optics.identifier[0] == "MST":
-                print("MST mirrors")
                 MST_mirror_plate_actor = MST_create_mirror_plane()
                 MST_tel_structure_actor = MST_tel_structure()
                 actorCollection.AddItem(MST_mirror_plate_actor)
                 actorCollection.AddItem(MST_tel_structure_actor)
+            elif telescope.optics.identifier[0] == 'SST':
+                SST_primary_mirror_plane_actor = SST_primary_mirror_plane()
+                SST_tel_structure_actor = SST_tel_structure()
+                actorCollection.AddItem(SST_primary_mirror_plane_actor)
+                actorCollection.AddItem(SST_tel_structure_actor)
+
 
             actorCollection.InitTraversal()
 

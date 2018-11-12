@@ -1,12 +1,14 @@
 import vtk
 import numpy as np
 from vtk.util.colors import tomato
+from ..utils.cam_utils import get_cam_height
 
-cam_height = 16
-
+cam_height = get_cam_height("FlashCam")
 
 def MST_tel_structure():
-    l = 11.5 / (2 * (2 ** 0.5))
+    primary_reflector_diameter = 11.5
+
+    l = primary_reflector_diameter / (2 * (2 ** 0.5))
 
     x_points = [l, l, -l, -l]
     y_points = [-l, l, l, -l]
@@ -25,7 +27,7 @@ def MST_tel_structure():
 
         # Generate a random start and end point
         startPoint = [x_points[i], y_points[i], 0]
-        endPoint = [x_points[i]/4, y_points[i]/4, 16]
+        endPoint = [x_points[i]/4, y_points[i]/4, cam_height]
         rng = vtk.vtkMinimalStandardRandomSequence()
         rng.SetSeed(8775070)  # For testing.
 
@@ -89,15 +91,15 @@ def MST_tel_structure():
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     actor.RotateY(90)
+    actor.GetProperty().SetColor(tomato)
+
     return actor
 
 
 def MST_create_mirror_plane():
-    # create a sphere
-
     sphereSource1 = vtk.vtkSphereSource()
     sphereSource1.SetCenter(0.5, 0, 0)
-    sphereSource1.SetRadius(16)
+    sphereSource1.SetRadius(cam_height)
     sphereSource1.SetThetaResolution(30)
     sphereSource1.SetPhiResolution(30)
     sphereSource1.Update()
@@ -106,7 +108,7 @@ def MST_create_mirror_plane():
     sphere1Tri.SetInputData(input1)
 
     sphereSource2 = vtk.vtkSphereSource()
-    sphereSource2.SetRadius(16)
+    sphereSource2.SetRadius(cam_height)
     sphereSource2.SetThetaResolution(30)
     sphereSource2.SetPhiResolution(30)
     sphereSource2.Update()
@@ -132,7 +134,7 @@ def MST_create_mirror_plane():
     bool_cylinder.Update()
 
     transform = vtk.vtkTransform()
-    transform.Translate(-16, 0, 0)
+    transform.Translate(-cam_height, 0, 0)
     transform.RotateZ(90)
 
     transformFilter = vtk.vtkTransformPolyDataFilter()
@@ -158,10 +160,7 @@ def MST_create_mirror_plane():
 
     booleanOperationActor = vtk.vtkActor()
     booleanOperationActor.SetMapper(booleanOperationMapper)
-    booleanOperationActor.SetPosition(14.5, 0, 0)
-
-    #transform_2 = vtk.vtkTransform()
-    #transform_2.Translate(50, 50, 0)
-    #booleanOperationActor.SetUserTransform(transform_2)
+    booleanOperationActor.SetPosition(cam_height - 1.5, 0, 0)
+    booleanOperationActor.GetProperty().SetColor(tomato)
 
     return booleanOperationActor
