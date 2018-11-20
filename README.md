@@ -1,5 +1,7 @@
 CREED_VTK
 ========
+CTA Rendering Event by Event Display with VTK
+----------
 This library relies on top of [ctapipe](https://github.com/cta-observatory/ctapipe) and it is intended to create 3D renderings 
 in [VTK](https://www.vtk.org) for [CTA](www.cta-observatory.org) (the Cherenkov Telescope Array).
 
