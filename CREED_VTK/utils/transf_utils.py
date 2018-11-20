@@ -73,7 +73,7 @@ def create_extruded_text(text):
     """
     Create extruded text. To be then translated and rotated
     :param text: input text. Useful for axes and telescopes labelling,
-    :return:
+    :return: return transformed source. need a mapper and an actor then.
     """
     textSource = vtk.vtkVectorText()
     textSource.SetText(text)
