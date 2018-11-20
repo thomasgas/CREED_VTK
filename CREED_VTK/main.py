@@ -51,9 +51,9 @@ class CREED_VTK:
             tel_z_pos = tel_coords.z[tel_id - 1].value
 
             axes_camera = arrow_2d(self.event, tel_id, self.pointing)
-            axes_camera.SetPosition(tel_x_pos,
-                                    tel_y_pos,
-                                    tel_z_pos + get_cam_height(telescope.camera.cam_id))
+            # axes_camera.SetPosition(tel_x_pos,
+            #                         tel_y_pos,
+            #                         tel_z_pos + get_cam_height(telescope.camera.cam_id))
             self.ren.AddActor(axes_camera)
 
             camera_actor = camera_structure(self.event, tel_id, clean_level, clean_dict)
@@ -107,7 +107,7 @@ class CREED_VTK:
         axes_gnd.GetXAxisCaptionActor2D().GetTextActor().SetTextScaleMode(3)
         axes_gnd.GetYAxisCaptionActor2D().GetTextActor().SetTextScaleMode(3)
         axes_gnd.GetZAxisCaptionActor2D().GetTextActor().SetTextScaleMode(3)
-        self.ren.AddActor(axes_gnd)
+        # self.ren.AddActor(axes_gnd)
 
         renwin = vtk.vtkRenderWindow()
         renwin.AddRenderer(self.ren)
