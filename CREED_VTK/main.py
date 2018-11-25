@@ -30,16 +30,21 @@ class CREED_VTK:
         else:
             self.tel_ids = telescopes_ids
 
+        print(self.tel_ids)
+
         self.tel_id = {}
         self.tel_coords = event.inst.subarray.tel_coords
         self.ren = vtk.vtkRenderer()
         self.ren.SetBackground(0.9, 0.9, 0.9)
+        self.array_pointing = {'alt': np.rad2deg(event.mcheader.run_array_direction[1]),
+                               'az': np.rad2deg(event.mcheader.run_array_direction[0])}
         self.pointing = {}
 
-        for id_tel in self.tel_ids:
-            self.tel_id[id_tel] = []
-            self.pointing[id_tel] = {'alt': np.rad2deg(event.mc.tel[id_tel].altitude_raw),
-                                     'az': np.rad2deg(event.mc.tel[id_tel].azimuth_raw)}
+        for tel_id in self.tel_ids:
+            self.tel_id[tel_id] = []
+            self.pointing[tel_id] = {'alt': np.rad2deg(event.mc.tel[tel_id].altitude_raw),
+                                     'az': np.rad2deg(event.mc.tel[tel_id].azimuth_raw)}
+            print(self.pointing[tel_id])
 
     def add_arrows_camera_frame(self):
         for tel_id in self.tel_ids:
@@ -131,6 +136,20 @@ class CREED_VTK:
             actor.SetMapper(mapper)
             self.ren.AddActor(actor)
 
+    def add_gnd_tels(self):
+        self.ren.AddActor(create_ground_positions(self.event, self.tel_ids))
+
+    def add_gnd_frame(self, size):
+        self.ren.AddActor(create_ground_frame(size))
+
+    def add_tilted_tels(self):
+        self.ren.AddActor(add_tilted_positions(self.event,
+                                               self.tel_ids,
+                                               array_pointing=self.array_pointing))
+
+    def add_tilted_frame(self, size):
+        self.ren.AddActor(create_tilted_frame(dict_pointing=self.array_pointing, size=size))
+
     def show(self, width=920, height=640):
         """
         Display the rendering. window size is 920 x 640 is the default
@@ -148,9 +167,6 @@ class CREED_VTK:
                             z_label="z_gnd=Zen")
 
         self.ren.AddActor(axes_gnd)
-
-        actor_ground = create_ground_frame(size=500)
-        self.ren.AddActor(actor_ground)
 
         renwin = vtk.vtkRenderWindow()
         renwin.AddRenderer(self.ren)

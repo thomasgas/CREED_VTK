@@ -1,11 +1,9 @@
-import numpy as np
 import vtk
 
 from ..utils.transf_utils import scale_object
-from ..utils.colors import MakeLUTFromCTF
 
 
-def create_ground_frame(size=300):
+def create_tilted_frame(dict_pointing, size=300):
     planeSource = vtk.vtkPlaneSource()
     planeSource.SetXResolution(10)
     planeSource.SetYResolution(10)
@@ -13,11 +11,19 @@ def create_ground_frame(size=300):
     planeSource.SetNormal(0.0, 0.0, 1.0)
     planeSource.Update()
 
-    scaled_plane = scale_object(planeSource, size)
+    print(dict_pointing['alt'])
+    transform_text = vtk.vtkTransform()
+    transform_text.Scale(size, size, size)
+    transform_text.RotateZ(dict_pointing['az'].value)
+    transform_text.RotateY(90 - dict_pointing['alt'].value)
+    transform_text_axes = vtk.vtkTransformFilter()
+    transform_text_axes.SetTransform(transform_text)
+    transform_text_axes.SetInputConnection(planeSource.GetOutputPort())
+    transform_text_axes.Update()
 
     # Create a mapper and actor
     mapper = vtk.vtkPolyDataMapper()
-    mapper.SetInputData(scaled_plane.GetOutput())
+    mapper.SetInputData(transform_text_axes.GetOutput())
 
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
@@ -27,9 +33,10 @@ def create_ground_frame(size=300):
     return actor
 
 
-def create_ground_positions(event, list_tel_ids):
+def add_tilted_positions(event, list_tel_ids, array_pointing):
     subarray = event.inst.subarray
     tel_coords_gnd = subarray.tel_coords
+
 
     # lut = MakeLUTFromCTF(image_cal)
     points = vtk.vtkPoints()
@@ -66,7 +73,8 @@ def create_ground_positions(event, list_tel_ids):
 
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
-    actor.GetProperty().SetColor([255, 0, 0])
+    actor.GetProperty().SetColor([0, 255, 0])
+    actor.RotateZ(90 - array_pointing['alt'].value)
+    actor.RotateY(array_pointing['az'].value)
 
     return actor
-
