@@ -13,6 +13,8 @@ from .telescope.SST import *
 from .utils.cam_utils import *
 from .frames import *
 
+from ctapipe.coordinates import HorizonFrame
+
 tail_cut = {"LSTCam": (10, 20),
             "NectarCam": (7, 14),
             "FlashCam": (7, 14),
@@ -30,21 +32,18 @@ class CREED_VTK:
         else:
             self.tel_ids = telescopes_ids
 
-        print(self.tel_ids)
-
         self.tel_id = {}
         self.tel_coords = event.inst.subarray.tel_coords
         self.ren = vtk.vtkRenderer()
         self.ren.SetBackground(0.9, 0.9, 0.9)
-        self.array_pointing = {'alt': np.rad2deg(event.mcheader.run_array_direction[1]),
-                               'az': np.rad2deg(event.mcheader.run_array_direction[0])}
+        self.array_pointing = HorizonFrame(alt=np.rad2deg(event.mcheader.run_array_direction[1]),
+                                           az=np.rad2deg(event.mcheader.run_array_direction[0]))
         self.pointing = {}
 
         for tel_id in self.tel_ids:
             self.tel_id[tel_id] = []
             self.pointing[tel_id] = {'alt': np.rad2deg(event.mc.tel[tel_id].altitude_raw),
                                      'az': np.rad2deg(event.mc.tel[tel_id].azimuth_raw)}
-            print(self.pointing[tel_id])
 
     def add_arrows_camera_frame(self):
         for tel_id in self.tel_ids:
@@ -130,7 +129,6 @@ class CREED_VTK:
 
             mapper = vtk.vtkPolyDataMapper()
             mapper.SetInputConnection(tel_label.GetOutputPort())
-            # mapper.ScalarVisibilityOff()
 
             actor = vtk.vtkActor()
             actor.SetMapper(mapper)
@@ -143,12 +141,12 @@ class CREED_VTK:
         self.ren.AddActor(create_ground_frame(size))
 
     def add_tilted_tels(self):
-        self.ren.AddActor(add_tilted_positions(self.event,
+        self.ren.AddActor(add_tilted_positions(self.tel_coords,
                                                self.tel_ids,
                                                array_pointing=self.array_pointing))
 
     def add_tilted_frame(self, size):
-        self.ren.AddActor(create_tilted_frame(dict_pointing=self.array_pointing, size=size))
+        self.ren.AddActor(create_tilted_frame(array_pointing=self.array_pointing, size=size))
 
     def show(self, width=920, height=640):
         """

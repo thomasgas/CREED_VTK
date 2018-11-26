@@ -23,7 +23,8 @@ def create_ground_frame(size=300):
     actor.SetMapper(mapper)
     actor.GetProperty().EdgeVisibilityOn()
     actor.GetProperty().LightingOff()
-    actor.GetProperty().SetOpacity(0.5)
+    actor.GetProperty().SetOpacity(0.3)
+    actor.GetProperty().SetColor([255, 0, 0])
     return actor
 
 
