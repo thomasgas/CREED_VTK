@@ -11,28 +11,42 @@ There is another similar package in my github repository called CREED, which use
 
 In a "ctapipe pipeline" one can introduce this library in this way (more or less...expect changes):
 
-    from CREED_VTK import CREED_VTK
+- Plot the telescopes as spheres
 
-    render = CREED_VTK(event, telescopes_ids=[4,5,...])
+        try:
+            render = CREED_VTK(event, telescopes_ids=list(layout))
+        except:
+            render = CREED_VTK(event, telescopes_ids= event.inst.subarray.tel_ids.tolist())
+        render.add_gnd_tels()
+        render.add_gnd_frame(size=2000)
+        render.tel_labels() 
 
-    render.event_type(clean_level = "dl1", clean_dict=cleaned_dict)
-    render.camera(elev=20)
-    render.show(width= 1000, height=800)
+        render.add_tilted_tels()
+        render.add_tilted_frame(size=2000)
 
-    # TO BE IMPLEMENTED
-    # render.ref_frame.tilted = TiltedFrame(...)
-    # render.ref_frame.ground = GroundFrame(...)
+        render.camera_view(elev=20)
+        render.show(width= 1000, height=800)
 
-    # render.ref_frame.tilted.arrows()
-    # render.ref_frame.ground.arrows()
-    
-    # render.ref_frame.ground.grid()
-    # render.ref_frame.ground.grid()
-    
-    # render.ref_frame.ground.add_point( x = 3 * u.m, 
-                                       y = 5 * u.m,
-                                       label = "mc"
-                                      )
+- Plot telescopes without event (this can plot also telescopes with no data):
+
+        render = CREED_VTK(event, telescopes_ids=list(layout))
+        render.event_type(clean_level = "None")
+        render.add_arrows_camera_frame()
+        render.add_gnd_frame(size=300)
+        render.camera_view(elev=20)
+        render.tel_labels()
+        render.show(width= 1000, height=800)
+
+- Plot telescopes with data:
+        
+        render = CREED_VTK(event)
+        render.event_type(clean_level = "clean", clean_dict=cleaned_dict)
+        render.add_arrows_camera_frame()
+        render.add_gnd_frame(size=300)
+        render.camera_view(elev=20)
+        render.tel_labels()
+        render.show(width= 1000, height=800)
+
 Where:
 - `event` is an event from a simtel file
 - `telescopes_ids` is optional: if not provided is taken from event.r0.tels_with_data
