@@ -13,7 +13,7 @@ from .telescope.SST import *
 from .utils.cam_utils import *
 from .frames import *
 
-from ctapipe.coordinates import HorizonFrame
+from astropy.coordinates import AltAz, SkyCoord
 
 tail_cut = {"LSTCam": (10, 20),
             "NectarCam": (7, 14),
@@ -36,8 +36,16 @@ class CREED_VTK:
         self.tel_coords = event.inst.subarray.tel_coords
         self.ren = vtk.vtkRenderer()
         self.ren.SetBackground(0.9, 0.9, 0.9)
-        self.array_pointing = HorizonFrame(alt=np.rad2deg(event.mcheader.run_array_direction[1]),
-                                           az=np.rad2deg(event.mcheader.run_array_direction[0]))
+
+        try:
+            self.array_pointing = SkyCoord(alt=np.rad2deg(event.mcheader.run_array_direction[1]),
+                                           az=np.rad2deg(event.mcheader.run_array_direction[0]),
+                                           frame=AltAz())
+        except ValueError:
+            self.array_pointing = SkyCoord(alt=event.mc.alt,
+                                           az=event.mc.az,
+                                           frame=AltAz())
+
         self.pointing = {}
 
         for tel_id in self.tel_ids:
