@@ -5,7 +5,8 @@ setup(name='CREED_VTK',
       description='VTK rendering library for CTA',
       install_requires=[
           'vtk',
-          'numpy'
+          'numpy',
+          'astropy'
       ],
       packages=find_packages(),
       tests_require=['pytest'],

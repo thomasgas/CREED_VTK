@@ -1,9 +1,5 @@
-import copy
 import vtk
 import numpy as np
-# from ctapipe.io import event_source
-# from ctapipe.calib import CameraCalibrator
-# from ctapipe.image import tailcuts_clean
 
 from .camera.camera import *
 from .utils.arrows import *
@@ -38,13 +34,17 @@ class CREED_VTK:
         self.ren.SetBackground(0.9, 0.9, 0.9)
 
         try:
-            self.array_pointing = SkyCoord(alt=np.rad2deg(event.mcheader.run_array_direction[1]),
-                                           az=np.rad2deg(event.mcheader.run_array_direction[0]),
-                                           frame=AltAz())
+            self.array_pointing = SkyCoord(
+                alt=np.rad2deg(event.mcheader.run_array_direction[1]),
+                az=np.rad2deg(event.mcheader.run_array_direction[0]),
+                frame=AltAz()
+            )
         except ValueError:
-            self.array_pointing = SkyCoord(alt=event.mc.alt,
-                                           az=event.mc.az,
-                                           frame=AltAz())
+            self.array_pointing = SkyCoord(
+                alt=event.mc.alt,
+                az=event.mc.az,
+                frame=AltAz()
+            )
 
         self.pointing = {}
 
@@ -149,12 +149,41 @@ class CREED_VTK:
         self.ren.AddActor(create_ground_frame(size))
 
     def add_tilted_tels(self):
-        self.ren.AddActor(add_tilted_positions(self.tel_coords,
-                                               self.tel_ids,
-                                               array_pointing=self.array_pointing))
+        self.ren.AddActor(
+            add_tilted_positions(
+                self.tel_coords,
+                self.tel_ids,
+                array_pointing=self.array_pointing
+            )
+        )
 
     def add_tilted_frame(self, size):
-        self.ren.AddActor(create_tilted_frame(array_pointing=self.array_pointing, size=size))
+        self.ren.AddActor(
+            create_tilted_frame(
+                array_pointing=self.array_pointing,
+                size=size
+            )
+        )
+
+    def add_impact_point(self, core_x_pos=0, core_y_pos=0, core_z_pos=0, label=""):
+
+        tel_label = create_extruded_text(text=label)
+        tel_label = scale_object(tel_label, 15)
+        tel_label = translate_object(
+            tel_label,
+            center=[core_x_pos,
+                    core_y_pos,
+                    core_z_pos]
+        )
+
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(tel_label.GetOutputPort())
+
+        actor = vtk.vtkActor()
+        actor.SetMapper(mapper)
+        actor.GetProperty().SetColor([255, 0, 0])
+
+        self.ren.AddActor(actor)
 
     def show(self, width=920, height=640):
         """
