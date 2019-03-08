@@ -12,7 +12,7 @@ from .frames import *
 from astropy.coordinates import AltAz, SkyCoord
 import astropy.units as u
 
-from ctapipe.coordinates import TiltedGroundFrame
+from ctapipe.coordinates import TiltedGroundFrame, GroundFrame
 
 tail_cut = {"LSTCam": (10, 20),
             "NectarCam": (7, 14),
@@ -206,7 +206,32 @@ class CREED_VTK:
             )
         )
 
-    def add_impact_point(self, core_x_pos=0, core_y_pos=0, core_z_pos=0, label=""):
+    def add_impact_point(self, label="", status="mc", frame="ground", gnd_reco_pos=None):
+
+        if frame == "ground":
+            if status == "mc":
+                core_x_pos = self.event.mc.core_x.to_value(u.m)
+                core_y_pos = self.event.mc.core_y.to_value(u.m)
+                core_z_pos = 0
+            elif status == "reco":
+                core_x_pos = gnd_reco_pos.x.to_value(u.m)
+                core_y_pos = gnd_reco_pos.y.to_value(u.m)
+                core_z_pos = 0
+
+        elif frame == "tilted":
+            tilted_frame = TiltedGroundFrame(pointing_direction=self.array_pointing)
+
+            if status == "mc":
+                gnd_core_mc = GroundFrame(x=self.event.mc.core_x,
+                                          y=self.event.mc.core_y,
+                                          z=0.0 * u.m)
+                tilted_core_mc = gnd_core_mc.transform_to(tilted_frame)
+            elif status == "reco":
+                tilted_core_mc = gnd_reco_pos.transform_to(tilted_frame)
+
+            core_x_pos = tilted_core_mc.x.to_value(u.m)
+            core_y_pos = tilted_core_mc.y.to_value(u.m)
+            core_z_pos = 0
 
         tel_label = create_extruded_text(text=label)
         tel_label = scale_object(tel_label, 15)
@@ -223,7 +248,9 @@ class CREED_VTK:
         actor = vtk.vtkActor()
         actor.SetMapper(mapper)
         actor.GetProperty().SetColor([255, 0, 0])
-
+        if frame == "tilted":
+            actor.RotateZ(self.array_pointing.az.value)
+            actor.RotateY(90 - self.array_pointing.alt.value)
         self.ren.AddActor(actor)
 
     def show(self, width=920, height=640):
