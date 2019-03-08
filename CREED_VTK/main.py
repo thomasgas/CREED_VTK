@@ -10,6 +10,7 @@ from .utils.cam_utils import *
 from .frames import *
 
 from astropy.coordinates import AltAz, SkyCoord
+import astropy.units as u
 
 tail_cut = {"LSTCam": (10, 20),
             "NectarCam": (7, 14),
@@ -28,8 +29,16 @@ class CREED_VTK:
         else:
             self.tel_ids = telescopes_ids
 
+        # dictionary to save the actor per each telescope
         self.tel_id = {}
-        self.tel_coords = event.inst.subarray.tel_coords
+        self.tel_coords = {}  # event.inst.subarray.tel_coords
+
+        self.subarray = self.event.inst.subarray
+
+        for tel_id in self.tel_ids:
+            coords = self.subarray.tel_coords[self.subarray.tel_indices[tel_id]]
+            self.tel_coords[tel_id] = coords
+
         self.ren = vtk.vtkRenderer()
         self.ren.SetBackground(0.9, 0.9, 0.9)
 
@@ -55,14 +64,12 @@ class CREED_VTK:
 
     def add_arrows_camera_frame(self):
         for tel_id in self.tel_ids:
+            tel_x_pos = self.tel_coords[tel_id].x.to_value(u.m)
+            tel_y_pos = self.tel_coords[tel_id].y.to_value(u.m)
+            tel_z_pos = self.tel_coords[tel_id].z.to_value(u.m)
 
             telescope = self.event.inst.subarray.tel[tel_id]
             camera_type = telescope.camera.cam_id
-
-            tel_coords = self.event.inst.subarray.tel_coords
-            tel_x_pos = tel_coords.x[tel_id - 1].value
-            tel_y_pos = tel_coords.y[tel_id - 1].value
-            tel_z_pos = tel_coords.z[tel_id - 1].value
 
             axes_camera = arrow_2d(arrow_length=10, x_label="x_sim", y_label="y_sim")
 
@@ -82,9 +89,10 @@ class CREED_VTK:
             telescope = self.event.inst.subarray.tel[tel_id]
 
             # tel_coords = self.event.inst.subarray.tel_coords
-            tel_x_pos = self.tel_coords.x[tel_id - 1].value
-            tel_y_pos = self.tel_coords.y[tel_id - 1].value
-            tel_z_pos = self.tel_coords.z[tel_id - 1].value
+            tel_x_pos = self.tel_coords[tel_id].x.to_value(u.m)
+            tel_y_pos = self.tel_coords[tel_id].y.to_value(u.m)
+            tel_z_pos = self.tel_coords[tel_id].z.to_value(u.m)
+
             camera_actor = camera_structure(self.event, tel_id, clean_level, clean_dict)
             camera_frame_actor = camera_frame(telescope.camera.cam_id)
 
@@ -125,15 +133,16 @@ class CREED_VTK:
         self.ren.GetActiveCamera().Elevation(elev-90)
 
     def tel_labels(self):
-        for id_tel in self.tel_id:
-            tel_x_pos = self.tel_coords.x[id_tel - 1].value
-            tel_y_pos = self.tel_coords.y[id_tel - 1].value
-            tel_z_pos = self.tel_coords.z[id_tel - 1].value
+        for id_tel in self.tel_ids:
+            tel_x_pos = self.tel_coords[id_tel].x.to_value(u.m)
+            tel_y_pos = self.tel_coords[id_tel].y.to_value(u.m)
+            tel_z_pos = self.tel_coords[id_tel].z.to_value(u.m)
+
             tel_label = create_extruded_text(text=str(id_tel))
             tel_label = scale_object(tel_label, 8)
-            tel_label = translate_object(tel_label, center=[tel_x_pos + 8,
-                                                            tel_y_pos + 8,
-                                                            tel_z_pos])
+            tel_label = translate_object(tel_label, center=[tel_x_pos + 5,
+                                                            tel_y_pos + 5,
+                                                            tel_z_pos + 10])
 
             mapper = vtk.vtkPolyDataMapper()
             mapper.SetInputConnection(tel_label.GetOutputPort())
@@ -143,7 +152,7 @@ class CREED_VTK:
             self.ren.AddActor(actor)
 
     def add_gnd_tels(self):
-        self.ren.AddActor(create_ground_positions(self.event, self.tel_ids))
+        self.ren.AddActor(create_ground_positions(self.tel_coords, self.tel_ids))
 
     def add_gnd_frame(self, size):
         self.ren.AddActor(create_ground_frame(size))
@@ -153,6 +162,7 @@ class CREED_VTK:
             add_tilted_positions(
                 self.tel_coords,
                 self.tel_ids,
+                self.subarray,
                 array_pointing=self.array_pointing
             )
         )

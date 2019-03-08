@@ -1,6 +1,6 @@
 import numpy as np
 import vtk
-
+import astropy.units as u
 from ..utils.transf_utils import scale_object
 from ..utils.colors import MakeLUTFromCTF
 
@@ -28,17 +28,14 @@ def create_ground_frame(size=300):
     return actor
 
 
-def create_ground_positions(event, list_tel_ids):
-    subarray = event.inst.subarray
-    tel_coords_gnd = subarray.tel_coords
-
+def create_ground_positions(tel_coords, list_tel_ids):
     # lut = MakeLUTFromCTF(image_cal)
     points = vtk.vtkPoints()
 
     for tel_id in list_tel_ids:
-        tel_x_pos = tel_coords_gnd.x[tel_id - 1].value
-        tel_y_pos = tel_coords_gnd.y[tel_id - 1].value
-        tel_z_pos = tel_coords_gnd.z[tel_id - 1].value
+        tel_x_pos = tel_coords[tel_id].x.to_value(u.m)
+        tel_y_pos = tel_coords[tel_id].y.to_value(u.m)
+        tel_z_pos = tel_coords[tel_id].z.to_value(u.m)
         points.InsertNextPoint(tel_x_pos, tel_y_pos, tel_z_pos)
 
     polydata = vtk.vtkPolyData()
