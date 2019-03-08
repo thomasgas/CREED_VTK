@@ -36,20 +36,14 @@ def create_tilted_frame(array_pointing, size=300):
     return actor
 
 
-def add_tilted_positions(tel_coords_gnd, list_tel_ids, subarray, array_pointing):
-    tel_coords_gnd = subarray.tel_coords
-
-    tilted_system = TiltedGroundFrame(pointing_direction=array_pointing)
-    tilt_tel_pos = tel_coords_gnd.transform_to(tilted_system)
-
-    # lut = MakeLUTFromCTF(image_cal)
+def add_tilted_positions(tilted_positions, array_pointing):
     points = vtk.vtkPoints()
 
-    for tel_id in list_tel_ids:
-        tel_x_pos = tilt_tel_pos[subarray.tel_indices[tel_id]].x.value
-        tel_y_pos = tilt_tel_pos[subarray.tel_indices[tel_id]].y.value
-        tel_z_pos = 0
-        points.InsertNextPoint(tel_x_pos, tel_y_pos, tel_z_pos)
+    for tel_id in tilted_positions.keys():
+        tel_pos = tilted_positions[tel_id]
+        points.InsertNextPoint(tel_pos[0],
+                               tel_pos[1],
+                               tel_pos[2])
 
     polydata = vtk.vtkPolyData()
     polydata.SetPoints(points)
@@ -62,7 +56,6 @@ def add_tilted_positions(tel_coords_gnd, list_tel_ids, subarray, array_pointing)
     tel_source.SetThetaResolution(20)
     tel_source.SetPhiResolution(20)
     tel_source.Update()
-
 
     glyph = vtk.vtkGlyph3D()
     glyph.SetInputData(polydata)

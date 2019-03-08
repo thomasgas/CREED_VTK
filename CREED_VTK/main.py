@@ -12,6 +12,8 @@ from .frames import *
 from astropy.coordinates import AltAz, SkyCoord
 import astropy.units as u
 
+from ctapipe.coordinates import TiltedGroundFrame
+
 tail_cut = {"LSTCam": (10, 20),
             "NectarCam": (7, 14),
             "FlashCam": (7, 14),
@@ -132,23 +134,39 @@ class CREED_VTK:
     def camera_view(self, elev=0):
         self.ren.GetActiveCamera().Elevation(elev-90)
 
-    def tel_labels(self):
+    def tel_labels(self, frame="ground", tilted_pos=None):
+        """
+        Frame can be either "ground" or "tilted"
+        :param frame:
+        :param tilted_pos: coordinates in the TiltedGroundFrame
+        :return:
+        """
         for id_tel in self.tel_ids:
-            tel_x_pos = self.tel_coords[id_tel].x.to_value(u.m)
-            tel_y_pos = self.tel_coords[id_tel].y.to_value(u.m)
-            tel_z_pos = self.tel_coords[id_tel].z.to_value(u.m)
+            if frame == "ground":
+                tel_x_pos = self.tel_coords[id_tel].x.to_value(u.m)
+                tel_y_pos = self.tel_coords[id_tel].y.to_value(u.m)
+                tel_z_pos = self.tel_coords[id_tel].z.to_value(u.m)
+            elif frame == "tilted":
+                tel_x_pos = tilted_pos[id_tel][0]
+                tel_y_pos = tilted_pos[id_tel][1]
+                tel_z_pos = tilted_pos[id_tel][2]
 
             tel_label = create_extruded_text(text=str(id_tel))
             tel_label = scale_object(tel_label, 8)
-            tel_label = translate_object(tel_label, center=[tel_x_pos + 5,
-                                                            tel_y_pos + 5,
-                                                            tel_z_pos + 10])
+            tel_label = translate_object(tel_label,
+                                         center=[tel_x_pos + 5,
+                                                 tel_y_pos + 5,
+                                                 tel_z_pos + 10])
 
             mapper = vtk.vtkPolyDataMapper()
             mapper.SetInputConnection(tel_label.GetOutputPort())
 
             actor = vtk.vtkActor()
             actor.SetMapper(mapper)
+            if frame == "tilted":
+                actor.RotateZ(self.array_pointing.az.value)
+                actor.RotateY(90 - self.array_pointing.alt.value)
+
             self.ren.AddActor(actor)
 
     def add_gnd_tels(self):
@@ -157,12 +175,25 @@ class CREED_VTK:
     def add_gnd_frame(self, size):
         self.ren.AddActor(create_ground_frame(size))
 
-    def add_tilted_tels(self):
+    def add_tilted_tels(self, tel_labels=False):
+        tilted_positions = {}
+        tel_coords_gnd = self.subarray.tel_coords
+
+        tilted_system = TiltedGroundFrame(pointing_direction=self.array_pointing)
+        tilt_tel_pos = tel_coords_gnd.transform_to(tilted_system)
+
+        for tel_id in self.tel_ids:
+            tel_x_pos = tilt_tel_pos[self.subarray.tel_indices[tel_id]].x.to_value(u.m)
+            tel_y_pos = tilt_tel_pos[self.subarray.tel_indices[tel_id]].y.to_value(u.m)
+            tel_z_pos = 0
+            tilted_positions[tel_id] = [tel_x_pos, tel_y_pos, tel_z_pos]
+
+        if tel_labels is True:
+            self.tel_labels(frame="tilted", tilted_pos=tilted_positions)
+
         self.ren.AddActor(
             add_tilted_positions(
-                self.tel_coords,
-                self.tel_ids,
-                self.subarray,
+                tilted_positions,
                 array_pointing=self.array_pointing
             )
         )
