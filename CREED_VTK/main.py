@@ -56,6 +56,7 @@ class CREED_VTK:
                 az=event.mc.az,
                 frame=AltAz()
             )
+        self.tilted_frame = TiltedGroundFrame(pointing_direction=self.array_pointing)
 
         self.pointing = {}
 
@@ -253,6 +254,41 @@ class CREED_VTK:
             actor.RotateY(90 - self.array_pointing.alt.value)
         self.ren.AddActor(actor)
 
+    def plot_hillas_lines(self, hillas_dict, length, frame="ground"):
+
+        for tel_id, moments in hillas_dict.items():
+
+            if frame == "ground":
+                color = [255, 0, 0]
+                tel_x_pos = self.tel_coords[tel_id].x.to_value(u.m)
+                tel_y_pos = self.tel_coords[tel_id].y.to_value(u.m)
+                tel_z_pos = self.tel_coords[tel_id].z.to_value(u.m)
+            elif frame == "tilted":
+                color = [0, 255, 0]
+                tilted_system = self.tilted_frame
+                # i need those coordiantes in GroundFrame to transform to TiltedGroundFrame
+                # The selection is done afterwards
+                tel_coords_gnd = self.subarray.tel_coords
+                tilt_tel_pos = tel_coords_gnd.transform_to(tilted_system)
+                tel_x_pos = tilt_tel_pos[self.subarray.tel_indices[tel_id]].x.to_value(u.m)
+                tel_y_pos = tilt_tel_pos[self.subarray.tel_indices[tel_id]].y.to_value(u.m)
+                tel_z_pos = 0
+            hillas_line_actor = hillas_lines(
+                moments=moments,
+                length=length,
+                tel_coords=[tel_x_pos, tel_y_pos, tel_z_pos],
+                frame=frame,
+                array_pointing=self.array_pointing
+            )
+
+            # if frame == "tilted":
+            #     hillas_line_actor.RotateZ(0)#self.array_pointing.az.value)
+            #     hillas_line_actor.RotateY(0)#90 - self.array_pointing.alt.value)
+
+            # self.tel_id[tel_id].append(hillas_line_actor)
+            hillas_line_actor.GetProperty().SetColor(color)
+            self.ren.AddActor(hillas_line_actor)
+
     def show(self, width=920, height=640):
         """
         Display the rendering. window size is 920 x 640 is the default
@@ -264,7 +300,7 @@ class CREED_VTK:
             for actor in self.tel_id[id_tel]:
                 self.ren.AddActor(actor)
 
-        axes_gnd = arrow_3d(arrow_length=30,
+        axes_gnd = arrow_3d(arrow_length=100,
                             x_label="x_gnd=North",
                             y_label="y_gnd=West",
                             z_label="z_gnd=Zen")

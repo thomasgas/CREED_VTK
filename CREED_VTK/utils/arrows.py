@@ -1,6 +1,11 @@
-import vtk
-from .cam_utils import get_cam_height
 from .transf_utils import *
+import astropy.units as u
+import numpy as np
+from sympy import Plane, Point3D, Line2D, Line3D, Ray3D
+import matplotlib.pyplot as plt
+from astropy.coordinates import SkyCoord, AltAz, Angle, spherical_to_cartesian
+import astropy.units as u
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def arrow_2d(arrow_length=10, x_label="x", y_label="y"):
@@ -154,3 +159,70 @@ def arrow_3d(arrow_length=10, x_label="x", y_label="y", z_label="z"):
     # axes.SetUserTransform(transform_arrow)
 
     return axes
+
+
+def hillas_lines(moments, length, tel_coords, frame, array_pointing):
+
+    pointing = array_pointing
+    xx, yy, zz = np.array(spherical_to_cartesian(1, pointing.alt, -pointing.az))
+    plane = Plane(Point3D(0, 0, 0), normal_vector=(xx, yy, zz))
+
+    # angle in the tilted frame in radianz
+    angle = moments.psi.to_value(u.rad)
+
+    angle = angle + np.pi/2.
+
+    # psi = moments.psi.to_value(u.deg)
+
+    origin = Point3D(0, 0, 0)
+    a = Point3D(1, 0, 0)
+    b = Point3D(np.cos(angle), np.sin(angle), 0)
+
+    line_a = Ray3D(origin, a)
+    line_b = Ray3D(origin, b)
+
+    angle_tilt = line_b.angle_between(line_a)
+
+    b_in_plane = plane.projection(b)
+    a_in_plane = plane.projection(a)
+
+    line_a_plane = Ray3D(origin, a_in_plane)
+    line_b_plane = Ray3D(origin, b_in_plane)
+    angle_gnd = line_b_plane.angle_between(line_a_plane)
+
+    angle_ground = (float(angle_gnd.evalf()) * u.rad).to_value(u.deg)
+    angle_tilted = (float(angle_tilt.evalf()) * u.rad).to_value(u.deg)
+
+    if frame == "tilted":
+        psi = angle_tilted
+    elif frame == "ground":
+        psi = angle_ground
+
+    print(moments.psi.to_value(u.deg), angle_tilted, angle_ground)
+
+    cylinder = vtk.vtkCylinderSource()
+    cylinder.SetResolution(4)
+    cylinder.SetRadius(1)
+    cylinder.SetHeight(length)
+    cylinder.Update()
+
+    rotate_cylinder = rotate_object(cylinder, 'z', psi)
+
+    mapper = vtk.vtkPolyDataMapper()
+    mapper.SetInputConnection(rotate_cylinder.GetOutputPort())
+
+    actor = vtk.vtkActor()
+    actor.SetMapper(mapper)
+
+    transform = vtk.vtkTransform()
+    transform.PostMultiply()
+    transform.Translate(*tel_coords)
+
+    if frame == "tilted":
+        transform.RotateY(90 - array_pointing.alt.value)
+        transform.RotateZ(array_pointing.az.value)
+
+    actor.SetUserTransform(transform)
+
+    return actor
+
