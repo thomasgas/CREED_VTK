@@ -165,7 +165,7 @@ class CREED_VTK:
             actor = vtk.vtkActor()
             actor.SetMapper(mapper)
             if frame == "tilted":
-                actor.RotateZ(self.array_pointing.az.value)
+                actor.RotateZ(- self.array_pointing.az.value)
                 actor.RotateY(90 - self.array_pointing.alt.value)
 
             self.ren.AddActor(actor)
