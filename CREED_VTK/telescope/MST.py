@@ -5,6 +5,7 @@ from ..utils.cam_utils import get_cam_height
 
 cam_height = get_cam_height("FlashCam")
 
+
 def MST_tel_structure():
     primary_reflector_diameter = 11.5
 
