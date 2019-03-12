@@ -161,18 +161,11 @@ def arrow_3d(arrow_length=10, x_label="x", y_label="y", z_label="z"):
     return axes
 
 
-def hillas_lines(moments, length, tel_coords, frame, array_pointing):
+def hillas_lines(moments, length, tel_coords, frame, array_pointing, plane):
 
-    pointing = array_pointing
-    xx, yy, zz = np.array(spherical_to_cartesian(1, pointing.alt, -pointing.az))
-    plane = Plane(Point3D(0, 0, 0), normal_vector=(xx, yy, zz))
-
-    # angle in the tilted frame in radianz
     angle = moments.psi.to_value(u.rad)
 
     angle = angle + np.pi/2.
-
-    # psi = moments.psi.to_value(u.deg)
 
     origin = Point3D(0, 0, 0)
     a = Point3D(1, 0, 0)
@@ -181,24 +174,20 @@ def hillas_lines(moments, length, tel_coords, frame, array_pointing):
     line_a = Ray3D(origin, a)
     line_b = Ray3D(origin, b)
 
-    angle_tilt = line_b.angle_between(line_a)
-
-    b_in_plane = plane.projection(b)
-    a_in_plane = plane.projection(a)
-
-    line_a_plane = Ray3D(origin, a_in_plane)
-    line_b_plane = Ray3D(origin, b_in_plane)
-    angle_gnd = line_b_plane.angle_between(line_a_plane)
-
-    angle_ground = (float(angle_gnd.evalf()) * u.rad).to_value(u.deg)
-    angle_tilted = (float(angle_tilt.evalf()) * u.rad).to_value(u.deg)
-
     if frame == "tilted":
+        angle_tilt = line_b.angle_between(line_a)
+        angle_tilted = (float(angle_tilt.evalf()) * u.rad).to_value(u.deg)
         psi = angle_tilted
     elif frame == "ground":
-        psi = angle_ground
+        b_in_plane = plane.projection(b)
+        a_in_plane = plane.projection(a)
 
-    print(moments.psi.to_value(u.deg), angle_tilted, angle_ground)
+        line_a_plane = Ray3D(origin, a_in_plane)
+        line_b_plane = Ray3D(origin, b_in_plane)
+        angle_gnd = line_b_plane.angle_between(line_a_plane)
+
+        angle_ground = (float(angle_gnd.evalf()) * u.rad).to_value(u.deg)
+        psi = angle_ground
 
     cylinder = vtk.vtkCylinderSource()
     cylinder.SetResolution(4)

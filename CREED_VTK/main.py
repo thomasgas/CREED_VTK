@@ -256,6 +256,9 @@ class CREED_VTK:
 
     def plot_hillas_lines(self, hillas_dict, length, frame="ground"):
 
+        xx, yy, zz = np.array(spherical_to_cartesian(1, self.array_pointing.alt, -self.array_pointing.az))
+        plane = Plane(Point3D(0, 0, 0), normal_vector=(xx, yy, zz))
+
         for tel_id, moments in hillas_dict.items():
 
             if frame == "ground":
@@ -276,9 +279,10 @@ class CREED_VTK:
             hillas_line_actor = hillas_lines(
                 moments=moments,
                 length=length,
-                tel_coords=[tel_x_pos, tel_y_pos, tel_z_pos* 0 ],
+                tel_coords=[tel_x_pos, tel_y_pos, tel_z_pos * 0],
                 frame=frame,
-                array_pointing=self.array_pointing
+                array_pointing=self.array_pointing,
+                plane=plane
             )
 
             # if frame == "tilted":
