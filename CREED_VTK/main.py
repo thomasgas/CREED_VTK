@@ -250,7 +250,7 @@ class CREED_VTK:
         actor.SetMapper(mapper)
         actor.GetProperty().SetColor([255, 0, 0])
         if frame == "tilted":
-            actor.RotateZ(self.array_pointing.az.value)
+            actor.RotateZ(- self.array_pointing.az.value)
             actor.RotateY(90 - self.array_pointing.alt.value)
         self.ren.AddActor(actor)
 
@@ -276,7 +276,7 @@ class CREED_VTK:
             hillas_line_actor = hillas_lines(
                 moments=moments,
                 length=length,
-                tel_coords=[tel_x_pos, tel_y_pos, tel_z_pos],
+                tel_coords=[tel_x_pos, tel_y_pos, tel_z_pos* 0 ],
                 frame=frame,
                 array_pointing=self.array_pointing
             )
