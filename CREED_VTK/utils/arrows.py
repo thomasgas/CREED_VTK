@@ -220,7 +220,7 @@ def hillas_lines(moments, length, tel_coords, frame, array_pointing):
 
     if frame == "tilted":
         transform.RotateY(90 - array_pointing.alt.value)
-        transform.RotateZ(array_pointing.az.value)
+        transform.RotateZ(- array_pointing.az.value)
 
     actor.SetUserTransform(transform)
 

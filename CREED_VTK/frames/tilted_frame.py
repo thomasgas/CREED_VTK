@@ -15,7 +15,7 @@ def create_tilted_frame(array_pointing, size=300):
 
     transform_text = vtk.vtkTransform()
     transform_text.Scale(size, size, size)
-    transform_text.RotateZ(array_pointing.az.value)
+    transform_text.RotateZ(- array_pointing.az.value)
     transform_text.RotateY(90 - array_pointing.alt.value)
     transform_text_axes = vtk.vtkTransformFilter()
     transform_text_axes.SetTransform(transform_text)
@@ -71,7 +71,7 @@ def add_tilted_positions(tilted_positions, array_pointing):
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     actor.GetProperty().SetColor([0, 255, 0])
-    actor.RotateZ(array_pointing.az.value)
+    actor.RotateZ(- array_pointing.az.value)
     actor.RotateY(90 - array_pointing.alt.value)
 
     return actor
