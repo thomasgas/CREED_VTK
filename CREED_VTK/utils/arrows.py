@@ -184,7 +184,7 @@ def hillas_lines(moments, length, tel_coords, frame, array_pointing, plane):
         angle_gnd = line_b_plane.angle_between(line_a_plane)
 
         angle_ground = (float(angle_gnd.evalf()) * u.rad).to_value(u.deg)
-        psi = angle_ground
+        psi = angle_ground - array_pointing.az.to_value(u.deg)
 
     cylinder = vtk.vtkCylinderSource()
     cylinder.SetResolution(4)

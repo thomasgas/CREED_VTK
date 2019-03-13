@@ -283,7 +283,7 @@ class CREED_VTK:
             hillas_line_actor = hillas_lines(
                 moments=moments,
                 length=length,
-                tel_coords=[tel_x_pos, tel_y_pos, tel_z_pos * 0],
+                tel_coords=[tel_x_pos, tel_y_pos, tel_z_pos],
                 frame=frame,
                 array_pointing=self.array_pointing,
                 plane=plane
