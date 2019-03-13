@@ -9,8 +9,10 @@ from .telescope.SST import *
 from .utils.cam_utils import *
 from .frames import *
 
-from astropy.coordinates import AltAz, SkyCoord
+from astropy.coordinates import AltAz, SkyCoord, spherical_to_cartesian
 import astropy.units as u
+
+from sympy import Plane
 
 from ctapipe.coordinates import TiltedGroundFrame, GroundFrame
 
@@ -235,11 +237,13 @@ class CREED_VTK:
             core_z_pos = 0
 
         tel_label = create_extruded_text(text=label)
-        tel_label = scale_object(tel_label, 15)
+        tel_label = scale_object(tel_label, 20)
+        # those "magic numbers" are needed to have the center of the first letter
+        # of the label in the exact position. Depends on the fontsize.
         tel_label = translate_object(
             tel_label,
-            center=[core_x_pos,
-                    core_y_pos,
+            center=[core_x_pos - 12,
+                    core_y_pos - 9,
                     core_z_pos]
         )
 
@@ -248,7 +252,7 @@ class CREED_VTK:
 
         actor = vtk.vtkActor()
         actor.SetMapper(mapper)
-        actor.GetProperty().SetColor([255, 0, 0])
+        actor.GetProperty().SetColor([0, 0, 255])
         if frame == "tilted":
             actor.RotateZ(- self.array_pointing.az.value)
             actor.RotateY(90 - self.array_pointing.alt.value)
@@ -259,8 +263,8 @@ class CREED_VTK:
         xx, yy, zz = np.array(spherical_to_cartesian(1, self.array_pointing.alt, -self.array_pointing.az))
         plane = Plane(Point3D(0, 0, 0), normal_vector=(xx, yy, zz))
 
-        for tel_id, moments in hillas_dict.items():
-
+        for tel_id in self.tel_ids:
+            moments = hillas_dict[tel_id]
             if frame == "ground":
                 color = [255, 0, 0]
                 tel_x_pos = self.tel_coords[tel_id].x.to_value(u.m)

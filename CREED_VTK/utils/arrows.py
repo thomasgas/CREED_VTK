@@ -1,11 +1,8 @@
 from .transf_utils import *
 import astropy.units as u
 import numpy as np
-from sympy import Plane, Point3D, Line2D, Line3D, Ray3D
-import matplotlib.pyplot as plt
-from astropy.coordinates import SkyCoord, AltAz, Angle, spherical_to_cartesian
+from sympy import Point3D, Ray3D
 import astropy.units as u
-from mpl_toolkits.mplot3d import Axes3D
 
 
 def arrow_2d(arrow_length=10, x_label="x", y_label="y"):
