@@ -14,7 +14,7 @@ import astropy.units as u
 
 from sympy import Plane
 
-from ctapipe.coordinates import TiltedGroundFrame, GroundFrame
+from ctapipe.coordinates import TiltedGroundFrame, GroundFrame, project_to_ground
 
 tail_cut = {"LSTCam": (10, 20),
             "NectarCam": (7, 14),
@@ -260,26 +260,31 @@ class CREED_VTK:
 
     def plot_hillas_lines(self, hillas_dict, length, frame="ground"):
 
-        xx, yy, zz = np.array(spherical_to_cartesian(1, self.array_pointing.alt, -self.array_pointing.az))
+        xx, yy, zz = np.array(spherical_to_cartesian(1, self.array_pointing.alt, 0 * u.deg)) # -self.array_pointing.az))
         plane = Plane(Point3D(0, 0, 0), normal_vector=(xx, yy, zz))
+
+        tilted_system = self.tilted_frame
+        tel_coords_gnd = self.subarray.tel_coords
+        tilt_tel_pos = tel_coords_gnd.transform_to(tilted_system)
 
         for tel_id in self.tel_ids:
             moments = hillas_dict[tel_id]
             if frame == "ground":
                 color = [255, 0, 0]
-                tel_x_pos = self.tel_coords[tel_id].x.to_value(u.m)
-                tel_y_pos = self.tel_coords[tel_id].y.to_value(u.m)
-                tel_z_pos = self.tel_coords[tel_id].z.to_value(u.m)
+                gnd_pos = project_to_ground(tilt_tel_pos[self.subarray.tel_indices[tel_id]])
+                tel_x_pos = gnd_pos.x.to_value(u.m)
+                tel_y_pos = gnd_pos.y.to_value(u.m)
+                tel_z_pos = gnd_pos.z.to_value(u.m)
+
             elif frame == "tilted":
                 color = [0, 255, 0]
-                tilted_system = self.tilted_frame
-                # i need those coordiantes in GroundFrame to transform to TiltedGroundFrame
+                # i need those coordinates in GroundFrame to transform to TiltedGroundFrame
                 # The selection is done afterwards
-                tel_coords_gnd = self.subarray.tel_coords
-                tilt_tel_pos = tel_coords_gnd.transform_to(tilted_system)
                 tel_x_pos = tilt_tel_pos[self.subarray.tel_indices[tel_id]].x.to_value(u.m)
                 tel_y_pos = tilt_tel_pos[self.subarray.tel_indices[tel_id]].y.to_value(u.m)
                 tel_z_pos = 0
+                # tilted_tel_pos = tilt_tel_pos[self.subarray.tel_indices[tel_id]]
+
             hillas_line_actor = hillas_lines(
                 moments=moments,
                 length=length,
