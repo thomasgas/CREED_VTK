@@ -1,8 +1,12 @@
 from .transf_utils import *
 import astropy.units as u
 import numpy as np
-from sympy import Point3D, Ray3D
+# from sympy import Point3D, Ray3D
 import astropy.units as u
+
+from ctapipe.coordinates import project_to_ground
+from astropy.coordinates import SkyCoord
+from ctapipe.utils.linalg import angle as angle_util
 
 
 def arrow_2d(arrow_length=10, x_label="x", y_label="y"):
@@ -158,33 +162,51 @@ def arrow_3d(arrow_length=10, x_label="x", y_label="y", z_label="z"):
     return axes
 
 
-def hillas_lines(moments, length, tel_coords, frame, array_pointing, plane):
+def hillas_lines(moments, length, tel_coords, frame, array_pointing, tilted_frame, plane=None):
 
-    angle = moments.psi.to_value(u.rad)
+    angle_in = moments.psi.to_value(u.rad)
 
-    angle = angle + np.pi/2.
-
-    origin = Point3D(0, 0, 0)
-    a = Point3D(1, 0, 0)
-    b = Point3D(np.cos(angle), np.sin(angle), 0)
-
-    line_a = Ray3D(origin, a)
-    line_b = Ray3D(origin, b)
+    # a = Point3D(1, 0, 0)
+    # b = Point3D(np.cos(angle), np.sin(angle), 0)
 
     if frame == "tilted":
-        angle_tilt = line_b.angle_between(line_a)
-        angle_tilted = (float(angle_tilt.evalf()) * u.rad).to_value(u.deg)
-        psi = angle_tilted
+        angle = angle_in + np.pi/2.
+
+        # origin = Point3D(0, 0, 0)
+        # line_a = Ray3D(origin, a)
+        # line_b = Ray3D(origin, b)
+        # angle_tilt = line_b.angle_between(line_a)
+        # angle_tilted = (float(angle_tilt.evalf()) * u.rad).to_value(u.deg)
+
+        a = np.array([1, 0, 0])
+        b = np.array([np.cos(angle), np.sin(angle), 0])
+        angle_tilt_np = u.Quantity(angle_util(a, b), u.rad).to_value(u.deg)
+        psi = angle_tilt_np
     elif frame == "ground":
-        b_in_plane = plane.projection(b)
-        a_in_plane = plane.projection(a)
+        # b_in_plane = plane.projection(b)
+        # a_in_plane = plane.projection(a)
+        # line_a_plane = Ray3D(origin, a_in_plane)
+        # line_b_plane = Ray3D(origin, b_in_plane)
+        # angle_gnd = line_b_plane.angle_between(line_a_plane)
+        # angle_ground = (float(angle_gnd.evalf()) * u.rad).to_value(u.deg)
+        # psi = angle_ground - array_pointing.az.to_value(u.deg)
 
-        line_a_plane = Ray3D(origin, a_in_plane)
-        line_b_plane = Ray3D(origin, b_in_plane)
-        angle_gnd = line_b_plane.angle_between(line_a_plane)
+        if angle_in < 0:
+            angle_in = angle_in + np.pi
 
-        angle_ground = (float(angle_gnd.evalf()) * u.rad).to_value(u.deg)
-        psi = angle_ground - array_pointing.az.to_value(u.deg)
+        angle = angle_in
+
+        fix_a_in_plane = SkyCoord(x=1 * u.m, y=0 * u.m, frame=tilted_frame)
+        fix_b_in_plane = SkyCoord(x=np.cos(angle) * u.m, y=np.sin(angle) * u.m, frame=tilted_frame)
+
+        angle_fix_np = u.Quantity(
+            angle_util(
+                project_to_ground(fix_a_in_plane).cartesian.xyz.to_value(u.m),
+                project_to_ground(fix_b_in_plane).cartesian.xyz.to_value(u.m)),
+            u.rad
+        ).to_value(u.deg)
+
+        psi = angle_fix_np - array_pointing.az.to_value(u.deg) + 90
 
     cylinder = vtk.vtkCylinderSource()
     cylinder.SetResolution(4)

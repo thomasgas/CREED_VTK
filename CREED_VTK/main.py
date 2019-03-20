@@ -260,8 +260,12 @@ class CREED_VTK:
 
     def plot_hillas_lines(self, hillas_dict, length, frame="ground"):
 
-        xx, yy, zz = np.array(spherical_to_cartesian(1, self.array_pointing.alt, 0 * u.deg)) # -self.array_pointing.az))
-        plane = Plane(Point3D(0, 0, 0), normal_vector=(xx, yy, zz))
+        # xx, yy, zz = np.array(spherical_to_cartesian(
+        #     1,
+        #     self.array_pointing.alt,
+        #     0 * u.deg)
+        # )  # -self.array_pointing.az))
+        # # plane = Plane(Point3D(0, 0, 0), normal_vector=(xx, yy, zz))
 
         tilted_system = self.tilted_frame
         tel_coords_gnd = self.subarray.tel_coords
@@ -291,7 +295,9 @@ class CREED_VTK:
                 tel_coords=[tel_x_pos, tel_y_pos, tel_z_pos],
                 frame=frame,
                 array_pointing=self.array_pointing,
-                plane=plane
+                tilted_frame=tilted_system,
+                # plane=plane,
+
             )
 
             # if frame == "tilted":
