@@ -1,4 +1,4 @@
-CREED_VTK
+CREED_VTK (README TO BE UPDATED!!!)
 ========
 CTA Rendering Event by Event Display with VTK
 ----------
