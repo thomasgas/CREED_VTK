@@ -36,7 +36,7 @@ def camera_structure(event, tel_id, clean_level, cleaned_dict):
     elif clean_level == "dl1":
         image_cal = event.dl1.tel[tel_id].image[0]
     elif clean_level == "r0":
-        image_cal = event.r0.tel[tel_id].image[0]
+        image_cal = event.r0.tel[tel_id].image
     elif clean_level == "None":
         # insert by hand the number of pixels in the camera
         image_cal = np.zeros(tableSize)

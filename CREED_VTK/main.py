@@ -106,17 +106,17 @@ class CREED_VTK:
             actorCollection.AddItem(camera_actor)
             actorCollection.AddItem(camera_frame_actor)
 
-            if telescope.optics.identifier[0] == "LST":
+            if telescope.optics.name == "LST":
                 CSS_LST_actor = LST_tel_structure()
                 mirror_plate_actor = LST_create_mirror_plane()
                 actorCollection.AddItem(mirror_plate_actor)
                 actorCollection.AddItem(CSS_LST_actor)
-            elif telescope.optics.identifier[0] == "MST":
+            elif telescope.optics.name == "MST":
                 MST_mirror_plate_actor = MST_create_mirror_plane()
                 MST_tel_structure_actor = MST_tel_structure()
                 actorCollection.AddItem(MST_mirror_plate_actor)
                 actorCollection.AddItem(MST_tel_structure_actor)
-            elif telescope.optics.identifier[0] == 'SST':
+            elif telescope.optics.name == 'SST':
                 SST_primary_mirror_plane_actor = SST_primary_mirror_plane()
                 SST_tel_structure_actor = SST_tel_structure()
                 actorCollection.AddItem(SST_primary_mirror_plane_actor)
@@ -209,8 +209,10 @@ class CREED_VTK:
             )
         )
 
-    def add_impact_point(self, label="", status="mc", frame="ground", gnd_reco_pos=None):
+    def add_impact_point(self, label=None, status="mc", frame="ground", gnd_reco_pos=None):
 
+        if label is None:
+            label = ""
         if frame == "ground":
             if status == "mc":
                 core_x_pos = self.event.mc.core_x.to_value(u.m)
@@ -319,7 +321,7 @@ class CREED_VTK:
             for actor in self.tel_id[id_tel]:
                 self.ren.AddActor(actor)
 
-        axes_gnd = arrow_3d(arrow_length=100,
+        axes_gnd = arrow_3d(arrow_length=50,
                             x_label="x_gnd=North",
                             y_label="y_gnd=West",
                             z_label="z_gnd=Zen")
